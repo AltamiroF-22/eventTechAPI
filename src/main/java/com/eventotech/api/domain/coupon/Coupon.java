@@ -9,7 +9,6 @@ import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;
 import jakarta.persistence.Table;
 import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.JoinColumn;
 import com.eventotech.api.domain.event.Event;
@@ -23,8 +22,9 @@ import com.eventotech.api.domain.event.Event;
 public class Coupon {    
 
     @Id
-    @GeneratedValue()
     private  UUID id;
+
+    private String code;
 
     private Integer discount;
 
