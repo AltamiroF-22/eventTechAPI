@@ -1,6 +1,7 @@
 package com.eventotech.api.controller;
 
 import java.util.List;
+import java.util.Date;
 import com.eventotech.api.domain.event.Event;
 import com.eventotech.api.service.EventService;
 import org.springframework.http.ResponseEntity;
@@ -39,4 +40,23 @@ public class EventController {
 
         return ResponseEntity.ok(allEvents);
     }
+
+    @GetMapping("/filter")
+    public ResponseEntity<List<EventResponseDTO>> filterEvents(
+            @RequestParam(defaultValue = "0") Integer    page, 
+            @RequestParam(defaultValue = "10") Integer   size,
+
+            @RequestParam(required = false) String      city,
+            @RequestParam(required = false) String      uf,
+            @RequestParam(required = false) String      title,
+
+            @RequestParam(required = false) Date        startDate,
+            @RequestParam(required = false) Date        endDate
+        ) {
+
+        List<EventResponseDTO> filteredEvents = this.eventService.filterEvents(page, size, city, uf, title, startDate, endDate);
+
+        return ResponseEntity.ok(filteredEvents);
+    }
+
 }

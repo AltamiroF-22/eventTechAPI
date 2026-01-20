@@ -10,6 +10,7 @@ import com.eventotech.api.domain.event.Event;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
 import org.springframework.data.domain.Pageable;
+import com.eventotech.api.service.AddressService;
 import com.eventotech.api.config.CloudinaryConfig;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.web.multipart.MultipartFile;
@@ -17,6 +18,7 @@ import com.eventotech.api.domain.event.EventRequestDTO;
 import com.eventotech.api.domain.event.EventResponseDTO;
 import com.eventotech.api.repositories.EventRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+
 
 @Service
 public class EventService {
@@ -29,6 +31,9 @@ public class EventService {
     
     @Autowired
     private EventRepository eventRepository;
+
+    @Autowired
+    private AddressService addressService;
 
     public Event createEvent(EventRequestDTO data){
 
@@ -54,7 +59,13 @@ public class EventService {
         newEvent.setEventUrl(data.eventUrl());
         newEvent.setImgUrl(imgUrl);
         
-        return eventRepository.save(newEvent);
+        eventRepository.save(newEvent);
+
+        if(!data.remote()){
+            this.addressService.createdAddress(data, newEvent);
+        }
+
+        return newEvent;
     }
 
     public List<EventResponseDTO> getUpcomingEvents(Integer page, Integer size){
@@ -70,6 +81,41 @@ public class EventService {
                 event.getDate(),
                 "",
                 "",
+                event.getRemote(),
+                event.getEventUrl(),
+                event.getImgUrl()
+            ))
+            .toList();
+    }
+
+    public List<EventResponseDTO> filterEvents( Integer     page,
+                                                Integer     size,
+                                                String      city,
+                                                String      uf,
+                                                String      title,
+                                                Date        startDate,
+                                                Date        endDate
+     ){
+        Pageable pageable = PageRequest.of(page, size);
+
+        Page<Event> eventsPage = eventRepository.searchEvents(
+            new Date(),
+            title,
+            city,
+            uf,
+            startDate,
+            endDate,
+            pageable
+        );
+
+        return eventsPage.stream()
+            .map(event -> new EventResponseDTO(
+                event.getId(),
+                event.getTitle(),
+                event.getDescription(),
+                event.getDate(),
+                event.getAddress() != null ? event.getAddress().getCity() : "",
+                event.getAddress() != null ? event.getAddress().getUf() : "",
                 event.getRemote(),
                 event.getEventUrl(),
                 event.getImgUrl()
