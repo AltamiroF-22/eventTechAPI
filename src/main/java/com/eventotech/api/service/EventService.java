@@ -1,18 +1,22 @@
 package com.eventotech.api.service;
 
-import java.util.Date; 
 import java.util.Map;
 import java.util.UUID;
-
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-import com.eventotech.api.domain.event.Event;
-import com.eventotech.api.domain.event.EventRequestDTO;
-import com.eventotech.api.repositories.EventRepository;
-import com.eventotech.api.config.CloudinaryConfig;
-import org.springframework.web.multipart.MultipartFile;
+import java.util.List;
+import java.util.Date; 
 import com.cloudinary.Cloudinary;
 import com.cloudinary.utils.ObjectUtils;
+import com.eventotech.api.domain.event.Event;
+import org.springframework.data.domain.Page;
+import org.springframework.stereotype.Service;
+import org.springframework.data.domain.Pageable;
+import com.eventotech.api.config.CloudinaryConfig;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.web.multipart.MultipartFile;
+import com.eventotech.api.domain.event.EventRequestDTO;
+import com.eventotech.api.domain.event.EventResponseDTO;
+import com.eventotech.api.repositories.EventRepository;
+import org.springframework.beans.factory.annotation.Autowired;
 
 @Service
 public class EventService {
@@ -51,6 +55,26 @@ public class EventService {
         newEvent.setImgUrl(imgUrl);
         
         return eventRepository.save(newEvent);
+    }
+
+    public List<EventResponseDTO> getUpcomingEvents(Integer page, Integer size){
+        Pageable pageable = PageRequest.of(page, size);
+
+        Page<Event> eventsPage = eventRepository.findUpcomingEvents(new Date(), pageable);
+
+        return eventsPage.stream()
+            .map(event -> new EventResponseDTO(
+                event.getId(),
+                event.getTitle(),
+                event.getDescription(),
+                event.getDate(),
+                "",
+                "",
+                event.getRemote(),
+                event.getEventUrl(),
+                event.getImgUrl()
+            ))
+            .toList();
     }
 
     private String uploadImageAndGetUrl(MultipartFile image) {
